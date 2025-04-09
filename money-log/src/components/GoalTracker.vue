@@ -1,21 +1,27 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useGoalStore } from '@/stores/goal'
+import { useTransactionStore } from '@/stores/transactionStore'
+
+const goalStore = useGoalStore()
+const transactionStore = useTransactionStore()
+
 import DonutChart from './DonutChart.vue'
 
 // 날짜 → 'YYYY-MM'
 const now = new Date()
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
-// 상태값
-const goalAmount = ref(0)
+// goalStore 내에 정의된 목표값을 가져옴
+const goalAmount = ref(goalStore.targetExpense)
 const transactions = ref([])
 
 // 데이터 로딩
 onMounted(() => {
   // 목표 예산
   axios
-    .get('http://localhost:3001/goal')
+    .get('http://localhost:5500/goal')
     .then(response => {
       const goalData = response.data
       if (goalData.month === currentMonth) {
@@ -28,7 +34,7 @@ onMounted(() => {
 
   // 트랜잭션 내역
   axios
-    .get('http://localhost:3001/transactions')
+    .get('http://localhost:5500/transactions')
     .then(response => {
       transactions.value = response.data
     })
@@ -37,17 +43,11 @@ onMounted(() => {
     })
 })
 
-// 이번 달 지출만 필터링
-const thisMonthExpenses = computed(() =>
-  transactions.value.filter(
-    t => t.type === 'expense' && t.date?.startsWith(currentMonth),
-  ),
-)
-
-// 실제 지출 합계
-const currentSpending = computed(() =>
-  thisMonthExpenses.value.reduce((sum, item) => sum + item.amount, 0),
-)
+// 데이터 로딩
+onMounted(() => {
+  goalStore.getGoalInfo()
+  transactionStore.getTransactionInfo()
+})
 </script>
 
 <template>
@@ -59,13 +59,13 @@ const currentSpending = computed(() =>
       <div class="label">
         <p class="label-name">목표금액</p>
         <span class="label-value goal"
-          >{{ goalAmount.toLocaleString() }}원</span
+          >{{ goalStore.targetExpense.toLocaleString() }}원</span
         >
       </div>
       <div class="label">
         <p class="label-name">현재까지의 소비</p>
         <span class="label-value nowspend"
-          >{{ currentSpending.toLocaleString() }}원</span
+          >{{ transactionStore.totalExpense.toLocaleString() }}원</span
         >
       </div>
     </div>
