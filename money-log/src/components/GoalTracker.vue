@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import DonutChart from './DonutChart.vue'
 
 // 날짜 → 'YYYY-MM'
 const now = new Date()
@@ -47,26 +48,81 @@ const thisMonthExpenses = computed(() =>
 const currentSpending = computed(() =>
   thisMonthExpenses.value.reduce((sum, item) => sum + item.amount, 0),
 )
-
-// 지출 비율 계산(정수부분까지만 표기)
-const percentageUsed = computed(() => {
-  if (goalAmount.value === 0) return 0
-  const percent = (currentSpending.value / goalAmount.value) * 100
-  return percent > 100 ? 100 : Math.floor(percent)
-})
 </script>
 
 <template>
   <div class="GoalTracker">
-    <p>목표 금액: {{ goalAmount.toLocaleString() }}원</p>
-    <p>현재 지출: {{ currentSpending.toLocaleString() }}원</p>
-    <p>사용 비율: {{ percentageUsed }}%</p>
+    <h2 class="title">목표 금액까지, <span class="highlight">이만큼</span></h2>
+    <br />
+    <DonutChart :goal="goalAmount" :spent="currentSpending" />
+    <div class="text-wrap">
+      <div class="label">
+        <p class="label-name">목표금액</p>
+        <span class="label-value goal"
+          >{{ goalAmount.toLocaleString() }}원</span
+        >
+      </div>
+      <div class="label">
+        <p class="label-name">현재까지의 소비</p>
+        <span class="label-value nowspend"
+          >{{ currentSpending.toLocaleString() }}원</span
+        >
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .GoalTracker {
-  font-family: sans-serif;
+  font-family: 'Pretendard', sans-serif;
   padding: 1rem;
+  text-align: center;
+}
+
+.title {
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.8;
+  font-weight: 900;
+}
+
+.highlight {
+  color: #f5b63c;
+  font-weight: 900;
+  text-shadow: 0.8px 0 currentColor;
+}
+
+/* 하단 정렬을 위한 flex 적용 */
+.text-wrap {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.label {
+  display: flex;
+  justify-content: space-between;
+  width: 240px;
+}
+
+.label-name {
+  font-weight: 900;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.label-value {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.goal {
+  color: #4c4539;
+}
+
+.nowspend {
+  color: #feba17;
 }
 </style>
