@@ -27,7 +27,7 @@ const handleSubmit = async formData => {
 
     // 3. 새로운 거래 내역 객체 생성
     const newTransaction = {
-      id: Number(newId),
+      id: String(newId),
       type: formData.isIncome ? 'income' : 'expense',
       category: formData.category,
       content: formData.content,

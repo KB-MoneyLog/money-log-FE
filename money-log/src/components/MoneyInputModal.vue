@@ -3,7 +3,7 @@ import axios from 'axios'
 import { ref, reactive, onMounted, computed } from 'vue'
 import basicIcon from '../assets/profile-icon.svg'
 
-const emits = defineEmits(['submit', 'close'])
+const emits = defineEmits(['isOpen', 'submit', 'close'])
 
 const amount = ref(0)
 const formattedAmount = ref(0)
@@ -12,6 +12,13 @@ const content = ref('')
 const code = ref('')
 const isIncome = ref(false)
 let categories = reactive([])
+
+const props = defineProps({
+  isOpen: Boolean,
+  onClose: Function,
+  onSubmit: Function,
+  userName: String,
+})
 
 const selectedCategoryIcon = ref('')
 const selectedCategoryIconName = ref('')
@@ -102,7 +109,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="modal-overlay" v-if="isOpen" @click.self="closeModal">
+  <div class="modal-overlay" v-if="props.isOpen" @click.self="props.closeModal">
     <div class="modal-content">
       <div class="modal-header">
         <!-- 모달 창 헤더 -->
