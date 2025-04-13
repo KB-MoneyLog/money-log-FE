@@ -80,7 +80,6 @@ onMounted(() => {
         :currentYear="currentYear"
         :currentMonth="currentMonth"
         :selectedMonth="selectedMonth"
-        :reset="reset"
       />
     </div>
 
