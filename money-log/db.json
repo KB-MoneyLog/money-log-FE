@@ -160,15 +160,6 @@
       "id": "16"
     },
     {
-      "amount": 64000,
-      "date": "2025-04-05",
-      "content": "생일파티 준비",
-      "category": "경조사",
-      "code": "event",
-      "type": "expense",
-      "id": "17"
-    },
-    {
       "id": "19",
       "type": "expense",
       "category": "편의점-마트-잡화",
@@ -518,6 +509,42 @@
       "content": "드디어 알바비 입금!!!",
       "date": "2025-04-15",
       "amount": 1000000
+    },
+    {
+      "id": "63",
+      "type": "expense",
+      "category": "여행-숙박",
+      "content": "지출 테스트 중입니다.",
+      "code": "trip",
+      "date": "2025-04-11",
+      "amount": 10000
+    },
+    {
+      "id": "64",
+      "type": "expense",
+      "category": "교통-자동차",
+      "content": "test",
+      "code": "car",
+      "date": "2025-04-13",
+      "amount": 13000
+    },
+    {
+      "id": "65",
+      "type": "income",
+      "category": "용돈-월급",
+      "content": "수입 테스트",
+      "code": "money",
+      "date": "2025-04-13",
+      "amount": 1230000
+    },
+    {
+      "id": "66",
+      "type": "expense",
+      "category": "술-유흥",
+      "content": "수입 테스트 2",
+      "code": "drink",
+      "date": "2025-04-13",
+      "amount": 14000
     }
   ],
   "categories": [

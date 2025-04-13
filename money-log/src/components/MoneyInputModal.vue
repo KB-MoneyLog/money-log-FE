@@ -1,5 +1,115 @@
+<script setup>
+import axios from 'axios'
+import { ref, reactive, onMounted, computed } from 'vue'
+import basicIcon from '../assets/profile-icon.svg'
+
+const emits = defineEmits(['isOpen', 'submit', 'close'])
+
+const amount = ref(0)
+const formattedAmount = ref(0)
+const date = ref(new Date().toISOString().split('T')[0])
+const content = ref('')
+const code = ref('')
+const isIncome = ref(false)
+let categories = reactive([])
+
+const props = defineProps({
+  isOpen: Boolean,
+  onClose: Function,
+  onSubmit: Function,
+  userName: String,
+})
+
+const selectedCategoryIcon = ref('')
+const selectedCategoryIconName = ref('')
+// 선택된 아이콘이 없으면 기본 코인 돼지 모양 아이콘 사용
+const resolvedIcon = computed(() => {
+  if (selectedCategoryIcon.value) {
+    return new URL(
+      `../assets/${selectedCategoryIcon.value}.svg`,
+      import.meta.url,
+    ).href
+  } else {
+    return basicIcon
+  }
+})
+
+// 선택된 카테고리의 아이콘 코드 이름 업데이트
+function updateSelectedCategory(event) {
+  const selectedCtgValue = event.target.value
+  selectedCategoryIconName.value = event.target.value
+
+  categories.map(ctg => {
+    if (ctg.name === selectedCtgValue) selectedCategoryIcon.value = ctg.code
+  })
+}
+
+// 금액 입력 시 유효성 검사
+function handleAmountInput(event) {
+  // 숫자가 아닌 모든 문자 제거
+  const value = event.target.value.replace(/[^0-9]/g, '')
+
+  // 숫자만 있는 경우에만 처리
+  if (value) {
+    // 숫자로 변환하여 저장
+    amount.value = value
+    // 천 단위 쉼표 추가하여 표시
+    formattedAmount.value = Number(value).toLocaleString('ko-KR')
+  } else {
+    amount.value = ''
+    formattedAmount.value = ''
+  }
+}
+
+function resetForm() {
+  amount.value = ''
+  formattedAmount.value = ''
+  date.value = new Date().toISOString().split('T')[0]
+  content.value = ''
+  code.value = ''
+  selectedCategoryIconName.value = ''
+  isIncome.value = false
+}
+
+function submitForm() {
+  const formData = {
+    amount: amount.value,
+    date: date.value,
+    content: content.value,
+    code: selectedCategoryIcon.value,
+    category: selectedCategoryIconName.value,
+    isIncome: isIncome.value,
+  }
+  emits('submit', formData)
+  closeModal()
+}
+
+function closeModal() {
+  resetForm()
+  emits('close')
+}
+
+// 카테고리 정보 불러오기
+const API_URL = 'http://localhost:5500/categories'
+
+async function getCategory() {
+  try {
+    const response = await axios.get(API_URL)
+    const data = response.data
+    categories = data
+  } catch (error) {
+    console.error('카테고리 데이터를 불러오는데 실패했습니다:', error)
+    throw error
+  }
+}
+
+onMounted(() => {
+  getCategory()
+})
+</script>
+
 <template>
-  <div class="modal-overlay" v-if="isOpen" @click.self="closeModal">
+  <div class="modal-overlay" v-if="props.isOpen" @click.self="props.closeModal">
     <div class="modal-content">
       <div class="modal-header">
         <!-- 모달 창 헤더 -->
@@ -55,12 +165,14 @@
               >카테고리 Category
               <div class="category-select">
                 <img
-                  v-if="selectedCategoryIcon"
-                  :src="selectedCategoryIcon"
-                  :alt="category"
+                  :src="resolvedIcon"
+                  alt="카테고리 아이콘"
                   class="category-icon"
                 />
-                <select v-model="category" @change="updateSelectedCategory">
+                <select
+                  v-model="category"
+                  @change="updateSelectedCategory($event)"
+                >
                   <option
                     v-for="cat in categories"
                     :key="cat.id"
@@ -82,101 +194,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import axios from 'axios'
-import { addIconsToCategories, getCategoryIcon } from '@/stores/categoryIcons'
-
-export default {
-  name: 'MoneyInputModal',
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  data() {
-    return {
-      amount: '',
-      formattedAmount: '',
-      date: new Date().toISOString().split('T')[0],
-      content: '',
-      code: '',
-      category: '',
-      isIncome: false,
-      categories: [],
-      selectedCategoryIcon: null,
-    }
-  },
-  async created() {
-    try {
-      const response = await axios.get('http://localhost:5500/categories')
-      const data = response.data
-      // 카테고리 데이터에 아이콘 정보 추가
-      this.categories = addIconsToCategories(data)
-      if (this.categories.length > 0) {
-        this.category = this.categories[0].name
-        this.updateSelectedCategory()
-      }
-    } catch (error) {
-      console.error('카테고리 데이터를 불러오는데 실패했습니다:', error)
-    }
-  },
-  methods: {
-    // 선택된 카테고리의 아이콘 업데이트
-    updateSelectedCategory() {
-      const selectedCategory = this.categories.find(
-        cat => cat.name === this.category,
-      )
-      if (selectedCategory) {
-        this.selectedCategoryIcon = getCategoryIcon(selectedCategory.code)
-      }
-    },
-    closeModal() {
-      this.resetForm()
-      this.$emit('close')
-    },
-    // 금액 입력 시 유효성 검사
-    handleAmountInput(event) {
-      // 숫자가 아닌 모든 문자 제거
-      const value = event.target.value.replace(/[^0-9]/g, '')
-
-      // 숫자만 있는 경우에만 처리
-      if (value) {
-        // 숫자로 변환하여 저장
-        this.amount = value
-        // 천 단위 쉼표 추가하여 표시
-        this.formattedAmount = Number(value).toLocaleString('ko-KR')
-      } else {
-        this.amount = ''
-        this.formattedAmount = ''
-      }
-    },
-    resetForm() {
-      this.amount = ''
-      this.formattedAmount = ''
-      this.date = new Date().toISOString().split('T')[0]
-      this.content = ''
-      this.code = ''
-      this.category = this.categories.length > 0 ? this.categories[0].name : ''
-      this.isIncome = false
-      this.updateSelectedCategory()
-    },
-    submitForm() {
-      const formData = {
-        amount: this.amount,
-        date: this.date,
-        content: this.content,
-        code: this.code,
-        category: this.category,
-        isIncome: this.isIncome,
-      }
-      this.$emit('submit', formData)
-      this.closeModal()
-    },
-  },
-}
-</script>
 
 <style scoped>
 .modal-overlay {
